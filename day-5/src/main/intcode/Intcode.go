@@ -39,7 +39,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}
-	outputAsString := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(output)), ","), "[]")
+	outputAsString := intArrayToString(output)
 	fmt.Println(outputAsString)
 	os.Exit(0)
 }
@@ -71,15 +71,20 @@ func intcode(input []int) ([]int, error) {
 		instructionType, firstParamMode, secondParamMode, _ := interpretFullLengthOpcode(opcode)
 		switch instructionType {
 		case 99:
+			fmt.Println()
 			index = len(input)
 		case 1:
 			var firstSummand int
 			var secondSummand int
-			if firstSummand = input[input[index+1]]; firstParamMode == 1 {
+			if firstParamMode == 1 {
 				firstSummand = input[index+1]
+			} else {
+				firstSummand = input[input[index+1]]
 			}
-			if secondSummand = input[input[index+2]]; secondParamMode == 1 {
+			if secondParamMode == 1 {
 				secondSummand = input[index+2]
+			} else {
+				secondSummand = input[input[index+2]]
 			}
 			sum := firstSummand + secondSummand
 			input[input[index+3]] = sum
@@ -87,11 +92,15 @@ func intcode(input []int) ([]int, error) {
 		case 2:
 			var firstFactor int
 			var secondFactor int
-			if firstFactor = input[input[index+1]]; firstParamMode == 1 {
+			if firstParamMode == 1 {
 				firstFactor = input[index+1]
+			} else {
+				firstFactor = input[input[index+1]]
 			}
-			if secondFactor = input[input[index+2]]; secondParamMode == 1 {
+			if secondParamMode == 1 {
 				secondFactor = input[index+2]
+			} else {
+				secondFactor = input[input[index+2]]
 			}
 			product := firstFactor * secondFactor
 			input[input[index+3]] = product
@@ -100,19 +109,26 @@ func intcode(input []int) ([]int, error) {
 			reader := bufio.NewReader(os.Stdin)
 			read, err := reader.ReadString('\n')
 			if err != nil {
-				return []int{}, errors.New("Incorrect input")
+				return []int{}, err
 			}
-			value, _ := strconv.Atoi(read)
+			value, err := strconv.Atoi(strings.TrimSuffix(read, "\n"))
+			if err != nil {
+				return []int{}, err
+			}
 			input[input[index+1]] = value
 			index += 2
 		case 4:
 			var value int
-			if value = input[input[index+1]]; firstParamMode == 1 {
+			if firstParamMode == 1 {
 				value = input[index+1]
+			} else {
+				value = input[input[index+1]]
 			}
-			fmt.Println(value)
+			fmt.Printf("%d ", value)
 			index += 2
 		default:
+			fmt.Fprintln(os.Stderr, "Index = "+strconv.Itoa(index))
+			fmt.Fprintln(os.Stderr, "Input state - "+intArrayToString(input))
 			return []int{}, errors.New("Unknown opcode " + opcode)
 		}
 	}
@@ -143,4 +159,8 @@ func interpretFullLengthOpcode(opcode string) (int, int, int, int) {
 	secondParamMode, _ := strconv.Atoi(string(opcode[1]))
 	thirdParamMode, _ := strconv.Atoi(string(opcode[0]))
 	return instructionType, firstParamMode, secondParamMode, thirdParamMode
+}
+
+func intArrayToString(array []int) string {
+	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(array)), ","), "[]")
 }

@@ -48,12 +48,12 @@ func testIntcode(input string, expectedOutput string) {
 }
 
 func execIntcode(input string) (string, error) {
-	out, err := exec.Command(intcodeAppPath, "--inputArray", input).CombinedOutput()
+	out, err := exec.Command(intcodeAppPath, "-inputArray", input).CombinedOutput()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Intcode exit with code: "+err.Error())
 		fmt.Fprintln(os.Stderr, "Intcode output:")
 		fmt.Fprintln(os.Stderr, string(out))
 		os.Exit(1)
 	}
-	return strings.TrimSuffix(string(out), "\n"), nil
+	return strings.Trim(string(out), "\n"), nil
 }

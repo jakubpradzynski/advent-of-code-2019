@@ -4,7 +4,7 @@ echo -e "Getting dependencies..."
 go get "github.com/fatih/color"
 echo -e "Dependencies downloaded\n"
 
-go build -o target/Intcode src/main/intcode/Intcode.go
+go build -o target/IntcodeRunner src/main/intcode/IntcodeRunner.go
 go build -o target/IntcodeTests src/tests/IntcodeTests.go
 go build -o target/ThermalEnvironmentSupervisionTerminal src/main/ThermalEnvironmentSupervisionTerminal.go
 

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-var intcodeAppPath = "./target/Intcode"
+var intcodeAppPath = "./target/IntcodeRunner"
 var inputFilePath = "./src/resources/input.txt"
 
 func main() {
@@ -34,7 +34,7 @@ func execIntcode(input string) error {
 	if err = cmd.Start(); err != nil {
 		return err
 	}
-	if _, err = io.WriteString(stdin, "1\n"); err != nil {
+	if _, err = io.WriteString(stdin, "5\n"); err != nil {
 		return err
 	}
 	if err = cmd.Wait(); err != nil {

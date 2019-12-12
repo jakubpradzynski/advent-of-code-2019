@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"errors"
+	"../utils"
+	"./model"
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
-	"./model"
 )
 
 func main() {
@@ -27,42 +25,18 @@ func main() {
 		input = strings.Split(*inputArray, ",")
 	}
 	if *inputFilePath != "" {
-		input, err = readInput(*inputFilePath)
+		input, err = utils.ReadFirstLineInFile(*inputFilePath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
 		}
 	}
-	inputAsIntArray := stringArrayToIntArray(input)
-	computer := model.New(inputAsIntArray)
+	inputAsIntArray := utils.StringArrayToIntArray(input)
+	computer := model.New(inputAsIntArray, nil, nil)
 	output, err := computer.Process()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}
-	fmt.Println(intArrayToString(output))
-}
-
-func readInput(inputFilePath string) ([]string, error) {
-	file, err := os.Open(inputFilePath)
-	if err != nil {
-		return nil, errors.New("Can not read file " + inputFilePath)
-	}
-	scanner := bufio.NewScanner(file)
-	scanner.Scan()
-	input := scanner.Text()
-	return strings.Split(input, ","), nil
-}
-
-func stringArrayToIntArray(stringArray []string) []int {
-	intArray := []int{}
-	for _, str := range stringArray {
-		value, _ := strconv.Atoi(str)
-		intArray = append(intArray, value)
-	}
-	return intArray
-}
-
-func intArrayToString(array []int) string {
-	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(array)), ","), "[]")
+	fmt.Println(utils.IntArrayToString(output))
 }

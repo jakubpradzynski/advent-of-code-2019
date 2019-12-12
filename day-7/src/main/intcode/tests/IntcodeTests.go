@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
-	"strings"
+	"strconv"
 
+	"../../utils"
+	"../model"
+	"../stream"
 	"github.com/fatih/color"
 )
 
@@ -75,31 +76,33 @@ func main() {
 }
 
 func testIntcode(code string, expectedOutput string, input ...string) {
-	cmd := exec.Command("go", "run", "src/main/intcode/IntcodeRunner.go", "-inputArray", code)
+	var intcode model.Intcode
 	if len(input) > 0 {
-		buffer := bytes.Buffer{}
-		buffer.Write([]byte(input[0]))
-		cmd.Stdin = &buffer
+		inputStream := stream.New()
+		input, _ := strconv.Atoi(input[0])
+		inputStream.SendNewData(input)
+		intcode = model.New(utils.StringToIntArray(code), inputStream, nil)
+	} else {
+		intcode = model.New(utils.StringToIntArray(code), nil, nil)
 	}
-	combinedOutput, err := cmd.CombinedOutput()
+	output, err := intcode.Process()
 	if err != nil {
 		c := color.New(color.FgRed)
 		c.Print("Test failed!")
 		c.DisableColor()
 		c.Printf(" - %s\n", err.Error())
-		c.Printf("%s\n", string(combinedOutput))
 	} else {
-		output := string(combinedOutput)[:strings.IndexByte(string(combinedOutput), '\n')]
-		if string(output) != expectedOutput {
+		output := utils.IntArrayToString(output)
+		if output != expectedOutput {
 			c := color.New(color.FgRed)
 			c.Print("Test failed!")
 			c.DisableColor()
-			c.Printf(" - For input %s expeced output was %s and receive output %s\n", code, expectedOutput, string(output))
+			c.Printf(" - For input %s expeced output was %s and receive output %s\n", code, expectedOutput, output)
 		} else {
 			c := color.New(color.FgGreen)
 			c.Print("Test passed!")
 			c.DisableColor()
-			c.Printf(" - For input %s excpected output was %s and receive output %s\n", code, expectedOutput, string(output))
+			c.Printf(" - For input %s excpected output was %s and receive output %s\n", code, expectedOutput, output)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+
+	"../stream"
 )
 
 type Opcode int
@@ -27,18 +29,21 @@ const (
 )
 
 type Intcode struct {
-	code []int
+	code         []int
+	inputStream  *stream.Stream
+	outputStream *stream.Stream
 }
 
-func New(givenCode []int) Intcode {
+func New(givenCode []int, inputStream *stream.Stream, outputStream *stream.Stream) Intcode {
 	code := make([]int, len(givenCode))
 	copy(code, givenCode)
-	return Intcode{code}
+	return Intcode{code, inputStream, outputStream}
 }
 
 func (intcode Intcode) Process() ([]int, error) {
 	pointer := 0
 	results := []int{}
+	lastValueIndex := -1
 	for pointer < len(intcode.code) {
 		opcode, firstParamMode, secondParamMode, _, err := interpretInstruction(intcode.code[pointer])
 		if err != nil {
@@ -59,13 +64,24 @@ func (intcode Intcode) Process() ([]int, error) {
 			pointer += 4
 		case INPUT:
 			var value int
-			if _, err := fmt.Scanf("%d", &value); err != nil {
-				return results, err
+			if intcode.inputStream != nil {
+				channel := make(chan int)
+				intcode.inputStream.WaitForNewData(channel, lastValueIndex)
+				val := <-channel
+				value = val
+				lastValueIndex++
+			} else {
+				if _, err := fmt.Scanf("%d", &value); err != nil {
+					return results, err
+				}
 			}
 			intcode.code[intcode.code[pointer+1]] = value
 			pointer += 2
 		case OUTPUT:
 			firstParam, _ := getParam(intcode.code, pointer+1, firstParamMode)
+			if intcode.outputStream != nil {
+				intcode.outputStream.SendNewData(firstParam)
+			}
 			results = append(results, firstParam)
 			pointer += 2
 		case JUMP_IF_TRUE:
